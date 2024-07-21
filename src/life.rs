@@ -178,7 +178,7 @@ fn init_field(
                     mesh: meshes.add(Plane3d::default().mesh().size(size, size)),
                     material : materials.add(
                         StandardMaterial {
-                            emissive: Color::srgb(180., 850., 340.).into(),
+                            emissive: Color::linear_rgb(0.1, 1., 0.2).into(),
                             ..default()
                         }
                     ),
