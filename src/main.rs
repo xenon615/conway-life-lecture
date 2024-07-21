@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 // use bevy::winit::WinitSettings;
-use bevy_gltf_components::ComponentsFromGltfPlugin;
-use bevy_registry_export::*;
+// use bevy_gltf_components::ComponentsFromGltfPlugin;
+// use bevy_registry_export::*;
 use bevy::window::WindowResolution;
 // use bevy_inspector_egui::quick::WorldInspectorPlugin;
 mod common;
@@ -44,8 +44,8 @@ fn main() {
 
         ui::UIPlugin,
         
-        ExportRegistryPlugin::default(),
-        ComponentsFromGltfPlugin{legacy_mode: false}
+        // ExportRegistryPlugin::default(),
+        // ComponentsFromGltfPlugin{legacy_mode: false}
         // WorldInspectorPlugin::new()
     ))
     .init_state::<GameState>()

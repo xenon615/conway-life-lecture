@@ -9,8 +9,8 @@ edition = "2021"
 
 # bevy-inspector-egui = "0.24"
 
-bevy_gltf_components = "0.6.0"
-bevy_registry_export = "0.4"
+# bevy_gltf_components = "0.6.0"
+# bevy_registry_export = "0.4"
 fastrand = "2.0.1"
 
 [dependencies.regex]
