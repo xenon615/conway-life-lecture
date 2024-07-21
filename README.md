@@ -1,5 +1,10 @@
 # Conway`s Game of Life
-Another implementation made during the study process of Rust and Bevy
+Another implementation made during the study process of Rust and Bevy.  
+Purely for fun, presented as a lecture
+## Note
 Due to the fact that the set of patterns is quite large, please download it by yourself from the  [link](https://conwaylife.com/patterns/all.zip) 
-and unzip it into assets/patterns/
+and unzip into assets/patterns/
+![screenshot](img/image1.png)
+![screenshot](img/image2.png)
+![screenshot](img/image3.png)
 
