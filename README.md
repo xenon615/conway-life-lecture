@@ -5,8 +5,7 @@ Presented as a lecture  just for fun.
 Due to the fact that the set of patterns is quite large, please download it by yourself from the  [link](https://conwaylife.com/patterns/all.zip) 
 and unzip into assets/patterns/  
 ### Screenshots
-<img src="img/image1.png" width=300>
-<!-- ![screenshot1](img/image1.png | width=300)   -->
-<!-- ![screenshot2](img/image2.png | width=300)  
-![screenshot3](img/image3.png | width=300)   -->
+<img src="img/image1.png" width=500>
+<img src="img/image2.png" width=500>
+<img src="img/image3.png" width=500>
 
