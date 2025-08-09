@@ -17,3 +17,4 @@ and unzip into assets/patterns/
 <img src="img/image1.png" width=500>
 <img src="img/image2.png" width=500>
 <img src="img/image3.png" width=500>
+<img src="img/image4.png" width=500>
