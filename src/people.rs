@@ -1,7 +1,8 @@
 use std::f32::consts::PI;
-use bevy::prelude::*;
-use crate::common::CurrentAnimation;
-use crate::animations::{load_animation, switch_animation, setup_animation};
+use bevy::{prelude::*, scene::SceneInstanceReady};
+use bevy_gltf_animator_helper::{AllAnimations, AniData};
+
+use crate::NotReady;
 
 #[derive(Component)]
 pub struct People;
@@ -15,12 +16,6 @@ pub enum PeopleState {
     Load,
     Run,
     Idle
-}
-
-#[derive(Resource)]
-pub struct PeopleAnimations {
-    pub animations: Vec<AnimationNodeIndex>,
-    pub graph: Handle<AnimationGraph>,
 }
 
 const PEOPLE_SPEED: f32 = 6.5;
@@ -39,9 +34,8 @@ impl Plugin for PeoplePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_state::<PeopleState>()
-            .add_systems(Startup, (load, load_animation::<PeopleAnimations>))
-            .add_systems(Update, (setup_animation::<PeopleAnimations, People>, setup).chain().run_if(in_state(PeopleState::Load)))
-            .add_systems(Update, (do_run, switch_animation::<PeopleAnimations, People>).run_if(in_state(PeopleState::Run)))
+            .add_systems(Startup, load)
+            .add_systems(Update, do_run.run_if(in_state(PeopleState::Run)))
         ;
     }
 }
@@ -49,25 +43,51 @@ impl Plugin for PeoplePlugin {
 // ---
 
 fn load(
-    mut commands : Commands,
+    mut cmd : Commands,
     asset: ResMut<AssetServer>,
-) {
-   
-    let ph = asset.load("models/girl.glb#Scene0");
+    mut all_animations: ResMut<AllAnimations>,
+    mut graphs: ResMut<Assets<AnimationGraph>>,
 
-    for i in 0 .. PEOPLE_COUNT {
-        commands.spawn((
-            SceneBundle {
-                scene: ph.clone(),
-                transform: Transform::from_xyz(fastrand::f32() * 50. -25. , 0., 50.),
-                ..default()
-            },
-            People,
+) {
+    all_animations.add("People", "models/girl.glb", 3, &mut graphs, &asset);
+    cmd.spawn((
+        SceneRoot(asset.load(GltfAssetLabel::Scene(0).from_asset("models/girl.glb"))),
+        Transform::from_xyz(fastrand::f32() * 50. -25. , 0., 50.),
+        People,
+        Running,
+        AniData::new("People", 0),
+        PeoplePath(calc_path(0)),
+        Speed((fastrand::f32() + 1.) * PEOPLE_SPEED),
+        
+    ))
+    .observe(on_ready)
+    ;    
+    cmd.spawn((People, NotReady));
+}
+
+// ---
+
+fn on_ready(
+    tr: Trigger<SceneInstanceReady>,
+    mut cmd : Commands,
+    ready_q: Single<Entity,(With<NotReady>, With<People>)>,
+    mut next: ResMut<NextState<PeopleState>>
+) {
+     for i in 1 .. PEOPLE_COUNT {
+        cmd.
+        entity(tr.target())
+        .clone_and_spawn()
+        .insert((
+            Transform::from_xyz(fastrand::f32() * 50. -25. , 0., 50.),
             Speed((fastrand::f32() + 1.) * PEOPLE_SPEED),
             PeoplePath(calc_path(i)),
+            AniData::new("People", 0),
+            People,
             Running
         ));
-    }
+     }
+    cmd.entity(ready_q.into_inner()).despawn();
+    next.set(PeopleState::Run);
 }
 
 // ---
@@ -88,25 +108,13 @@ fn calc_path(idx: usize) -> Vec<Vec3> {
 
 // ---
 
-fn setup(
-    mut next_state: ResMut<NextState<PeopleState>>,
-    objects_q: Query<Entity, (With<People>, Without<CurrentAnimation>)>, 
-) {
-    if objects_q.is_empty() {
-        next_state.set(PeopleState::Run);
-        return;
-    }
-}
-
-// ---
-
 fn do_run(
     mut commands : Commands,
-    mut people_q: Query<(&mut Transform, &mut PeoplePath, &Speed, Entity, &mut CurrentAnimation), (With<People>, With<Running>)>,
+    mut people_q: Query<(&mut Transform, &mut PeoplePath, &Speed, Entity, &mut AniData), (With<People>, With<Running>)>,
     mut next_state: ResMut<NextState<PeopleState>>,
     time: Res<Time>,
 ) {
-
+    
     if people_q.is_empty() {
         next_state.set(PeopleState::Idle);
         return;
@@ -115,9 +123,9 @@ fn do_run(
     for (mut t, mut p, s, e, mut ca) in people_q.iter_mut() {
         let point = p.0[0];
         let ds = point.distance_squared(t.translation);
-        let step = time.delta_seconds() * s.0 * if ds < 3.5 {0.2} else {1.};
+        let step = time.delta_secs() * s.0 * if ds < 4.5 {0.2} else {1.};
         if ds > 0.5 {
-            t.rotation = t.rotation.slerp(t.looking_at(point, Vec3::Y).rotation, time.delta_seconds() * 5.);
+            t.rotation = t.rotation.slerp(t.looking_at(point, Vec3::Y).rotation, time.delta_secs() * 5.);
             let m = t.forward() * step;
             t.translation += m;
         } else {
@@ -126,7 +134,7 @@ fn do_run(
             if p.0.len() == 0 {
                 commands.entity(e).remove::<Running>();
                 t.rotate_y(PI);
-                ca.0 = fastrand::usize(1 .. 3);
+                ca.animation_index = fastrand::usize(1 .. 3);
             } 
         }
     }

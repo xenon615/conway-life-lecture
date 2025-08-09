@@ -1,9 +1,10 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use bevy::prelude::*;
 // use bevy::winit::WinitSettings;
-// use bevy_gltf_components::ComponentsFromGltfPlugin;
-// use bevy_registry_export::*;
 use bevy::window::WindowResolution;
 // use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_gltf_animator_helper::AnimatorHelperPlugin;
+
 mod common;
 mod camera;
 mod life;
@@ -11,10 +12,15 @@ mod ui;
 mod env;
 mod lecturer;
 mod people;
-mod animations;
+
+#[derive(Component)]
+pub struct NotReady;
+
+
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum GameState {
     #[default]
+    Loading,
     Intro,
     Setup,
     Simulate
@@ -41,14 +47,24 @@ fn main() {
         env::EnvPlugin,
         lecturer::LecturerPlugin,
         people::PeoplePlugin,
-
+        AnimatorHelperPlugin,
         ui::UIPlugin,
-        
-        // ExportRegistryPlugin::default(),
-        // ComponentsFromGltfPlugin{legacy_mode: false}
         // WorldInspectorPlugin::new()
     ))
+    .add_systems(Update, check_ready.run_if(in_state(GameState::Loading)))
     .init_state::<GameState>()
     .run();
 
 }    
+
+fn check_ready(
+    not_ready_q: Query<&NotReady>,
+    mut next: ResMut<NextState<GameState>>     
+) {
+    if not_ready_q.is_empty() {
+        println!("GAME!");
+        // next.set(GameState::Intro);
+        next.set(GameState::Setup);
+    }
+}
+

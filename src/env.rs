@@ -1,14 +1,10 @@
 use bevy::prelude::*;
-
-#[derive(Component, Reflect, Default, Debug)]
-#[reflect(Component)]
-pub struct Cathedra;
-
 pub struct EnvPlugin;
 impl Plugin for EnvPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (init_light, init_env));
-        app.register_type::<Cathedra>();
+        app
+        .add_systems(Startup, (init_light, init_env))
+        ;
     }
 }
 
@@ -27,11 +23,8 @@ fn init_env(
     assets: ResMut<AssetServer>
 ) {
     commands.spawn((
-        SceneBundle {
-            scene: assets.load("models/scene.glb#Scene0"),
-            transform: Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 1., 1.)),
-            ..default()
-        },
+        SceneRoot(assets.load(GltfAssetLabel::Scene(0).from_asset("models/scene.glb"))),
+        Transform::from_xyz(0., 0., 0.).with_scale(Vec3::new(1., 1., 1.))
     ));
 
 }

@@ -155,14 +155,14 @@ fn init_data (
 // ---
 
 fn init_field(
-    mut gen : ResMut<Generation>,
+    mut g : ResMut<Generation>,
     mut commands : Commands,
     mut meshes : ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>
 ) {
 
-    let count_i = gen.state.len();
-    let count_j = gen.state[0].len();
+    let count_i = g.state.len();
+    let count_j = g.state[0].len();
     let size = 0.25;
     
     let start_i = (size * (count_i as f32 - 0.5)) * 0.5 + 20.;
@@ -170,23 +170,22 @@ fn init_field(
 
     let top_left = Vec3::new( -start_j, start_i, 0.);
 
-    for (i, r)  in gen.state.iter_mut().enumerate() {
+    let mesh_h = meshes.add(Plane3d::default().mesh().size(size, size));
+    let mat_h = materials.add(
+        StandardMaterial {
+            emissive: Color::linear_rgb(0.1, 1., 0.2).into(),
+            ..default()
+        }
+    );
+
+    for (i, r)  in g.state.iter_mut().enumerate() {
         for (j, c)  in r.iter_mut().enumerate() {
             let pos = Vec3::new(top_left.x + size * j as f32, top_left.y - size * i as f32, 0.);
             commands.spawn((
-                PbrBundle {
-                    mesh: meshes.add(Plane3d::default().mesh().size(size, size)),
-                    material : materials.add(
-                        StandardMaterial {
-                            emissive: Color::linear_rgb(0.1, 1., 0.2).into(),
-                            ..default()
-                        }
-                    ),
-                    transform: Transform::from_translation(pos).with_rotation(Quat::from_rotation_x((90_f32).to_radians())),
-                    visibility: if c.0 > 0 {Visibility::Visible} else {Visibility::Hidden},       
-                    // visibility: Visibility::Visible,
-                    ..default()
-                },
+                Mesh3d(mesh_h.clone()),
+                MeshMaterial3d(mat_h.clone()),
+                Transform::from_translation(pos).with_rotation(Quat::from_rotation_x((90_f32).to_radians())),
+                if c.0 > 0 {Visibility::Visible} else {Visibility::Hidden},
                 Index((i, j))
             ));
         }
@@ -194,17 +193,17 @@ fn init_field(
 }
 
 fn calc (
-    mut gen : ResMut<Generation>,
+    mut g : ResMut<Generation>,
     mut cells_q: Query<(&mut Visibility, &Index)>,
 ) {
-    if gen.state.is_empty() {
+    if g.state.is_empty() {
         return;
     }
-    let last_i = (gen.state.len() -1)  as isize;
-    let last_j = (gen.state[0].len() - 1) as isize;
+    let last_i = (g.state.len() -1)  as isize;
+    let last_j = (g.state[0].len() - 1) as isize;
     
     for (mut v, idx)  in  cells_q.iter_mut() {
-        *v = if gen.state[idx.0.0][idx.0.1].1 > 0  {Visibility::Visible} else {Visibility::Hidden};
+        *v = if g.state[idx.0.0][idx.0.1].1 > 0  {Visibility::Visible} else {Visibility::Hidden};
         
         let c_i = idx.0.0 as isize;
         let c_j = idx.0.1 as isize;
@@ -245,22 +244,20 @@ fn calc (
         ];
 
 
-        let count = ns.map(|(i, j)| gen.state[i as usize][j as usize].0).iter().filter(|h| **h > 0).count();
+        let count = ns.map(|(i, j)| g.state[i as usize][j as usize].0).iter().filter(|h| **h > 0).count();
         
-        if gen.state[idx.0.0][idx.0.1].0 == 0 {
+        if g.state[idx.0.0][idx.0.1].0 == 0 {
             if count == 3 {
-                gen.state[idx.0.0][idx.0.1].1 = 1;    
+                g.state[idx.0.0][idx.0.1].1 = 1;    
             }
         } else {
             if count != 2 &&  count != 3 {
-                gen.state[idx.0.0][idx.0.1].1 = 0;                    
+                g.state[idx.0.0][idx.0.1].1 = 0;                    
             }
         }   
-
-        
     }
 
-    for r  in gen.state.iter_mut() {
+    for r  in g.state.iter_mut() {
         for c in r.iter_mut() {
             c.0 = c.1;
         }
