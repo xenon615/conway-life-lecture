@@ -62,9 +62,9 @@ fn check_ready(
     mut next: ResMut<NextState<GameState>>     
 ) {
     if not_ready_q.is_empty() {
-        println!("GAME!");
-        // next.set(GameState::Intro);
-        next.set(GameState::Setup);
+        // println!("GAME!");
+        next.set(GameState::Intro);
+        // next.set(GameState::Setup);
     }
 }
 

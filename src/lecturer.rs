@@ -105,7 +105,7 @@ fn camera_follow (
 ) {
     let target =  q_l.into_inner();
     let mut cam = q_c.into_inner();
-    let bias = Vec3::new(0., 3., 15.);
+    let bias = Vec3::new(0., 3., 10.);
     let desired = target.translation + target.rotation.mul_vec3(bias);
     cam.translation = cam.translation.lerp(desired, time.delta_secs() * 10.);
     let look_at = target.translation + target.rotation.mul_vec3(Vec3::Y * 1.5);

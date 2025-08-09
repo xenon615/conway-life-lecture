@@ -84,7 +84,7 @@ fn enter_setup (
     q_camera: Single<&mut Transform, With<Cam>>
 ) {
     let mut camt = q_camera.into_inner();
-    camt.translation = Vec3::new(0., 5., 25.);
+    camt.translation = Vec3::new(0., 2., 25.);
     camt.look_at(Vec3::new(0., 1., 18.), Vec3::Y);
 }
 
